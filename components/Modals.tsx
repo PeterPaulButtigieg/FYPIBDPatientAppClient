@@ -6,6 +6,7 @@ import { Portal, Modal, Button, Text } from 'react-native-paper';
 import HydrationForm from './HydrationLogForm';
 import AppointmentForm from './AppointmentForm';
 import PrescriptionForm from './PrescriptionForm';
+import LifestyleForm from './LifestyleForm';
 
 export interface ModalsProps {
   activeModal: string | null; // Expected values: 'modal1', 'modal2', …, 'modal7'
@@ -43,11 +44,7 @@ const Modals: React.FC<ModalsProps> = ({ activeModal, onDismiss }) => {
         onDismiss={onDismiss}
         contentContainerStyle={styles.modalContainer}
       >
-        <Text style={styles.modalTitle}>Modal 3</Text>
-        <Text>This is the content for Modal 3.</Text>
-        <Button mode="contained" onPress={onDismiss} style={styles.modalButton}>
-          Close
-        </Button>
+        <LifestyleForm onDismiss={onDismiss} />
       </Modal>
 
       {/* Modal 4 */}
