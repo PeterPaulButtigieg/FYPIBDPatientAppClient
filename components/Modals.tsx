@@ -7,6 +7,9 @@ import HydrationForm from './HydrationLogForm';
 import AppointmentForm from './AppointmentForm';
 import PrescriptionForm from './PrescriptionForm';
 import LifestyleForm from './LifestyleForm';
+import SymptomForm from './SymptomForm';
+import DietForm from './DietForm';
+import BowelMovementForm from './BowelMovementForm';
 
 export interface ModalsProps {
   activeModal: string | null; // Expected values: 'modal1', 'modal2', …, 'modal7'
@@ -22,11 +25,7 @@ const Modals: React.FC<ModalsProps> = ({ activeModal, onDismiss }) => {
         onDismiss={onDismiss}
         contentContainerStyle={styles.modalContainer}
       >
-        <Text style={styles.modalTitle}>Modal 1</Text>
-        <Text>This is the content for Modal 1.</Text>
-        <Button mode="contained" onPress={onDismiss} style={styles.modalButton}>
-          Close
-        </Button>
+        <DietForm onDismiss={onDismiss} />
       </Modal>
 
       {/* Modal 2 */}
@@ -53,11 +52,7 @@ const Modals: React.FC<ModalsProps> = ({ activeModal, onDismiss }) => {
         onDismiss={onDismiss}
         contentContainerStyle={styles.modalContainer}
       >
-        <Text style={styles.modalTitle}>Modal 4</Text>
-        <Text>This is the content for Modal 4.</Text>
-        <Button mode="contained" onPress={onDismiss} style={styles.modalButton}>
-          Close
-        </Button>
+        <SymptomForm onDismiss={onDismiss} />
       </Modal>
 
       {/* Modal 5 */}
@@ -66,11 +61,7 @@ const Modals: React.FC<ModalsProps> = ({ activeModal, onDismiss }) => {
         onDismiss={onDismiss}
         contentContainerStyle={styles.modalContainer}
       >
-        <Text style={styles.modalTitle}>Modal 5</Text>
-        <Text>This is the content for Modal 5.</Text>
-        <Button mode="contained" onPress={onDismiss} style={styles.modalButton}>
-          Close
-        </Button>
+        <BowelMovementForm onDismiss={onDismiss} />
       </Modal>
 
       {/* Modal 6 */}
