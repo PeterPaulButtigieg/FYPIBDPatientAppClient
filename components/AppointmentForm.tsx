@@ -1,11 +1,8 @@
-import Slider from '@react-native-community/slider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
+import { View, Platform, Alert } from 'react-native';
 import { Text, Button, TextInput, HelperText } from 'react-native-paper';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import api from '../services/api';
-import eventBus from '@/utils/eventBus';
 
 interface AppointmentFormProps {
   onDismiss: () => void;
@@ -20,7 +17,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onDismiss }) => {
   const [appointmentTypeError, setAppointmentTypeError] = useState(false);
   const [venueError, setVenueError] = useState(false);
 
-  // Format the date and time
+  // Format the date and time strings
   const formatDate = (d: Date) => d.toLocaleDateString();
   const formatTime = (t: Date) =>
     t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -36,7 +33,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onDismiss }) => {
     });
   };
 
-  // Open native Android time picker
+  // Open native Android time picker with 24-hour format
   const openAndroidTimePicker = () => {
     DateTimePickerAndroid.open({
       value: time,
@@ -48,7 +45,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onDismiss }) => {
     });
   };
 
-  // Combine date and time into a single Date
+  // Combine date and time into one Date object
   const getCombinedDateTime = () => {
     return new Date(
       date.getFullYear(),
@@ -61,26 +58,25 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onDismiss }) => {
   };
 
   const submitData = async () => {
-    // Validate required field for appointmentType
+    // Validate required field for appointmentType without using an alert
     if (!appointmentType.trim()) {
       setAppointmentTypeError(true);
       return;
     }
 
     if (!venue.trim()) {
-      setVenueError(true);
-      return;
+        setVenueError(true);
+        return;
     }
 
     const combinedDateTime = getCombinedDateTime();
     const now = new Date();
 
     if (combinedDateTime < now) {
-      Alert.alert('Invalid Date', 'An appointment cannot be in the past.');
-      return;
-    }
+        Alert.alert('Invalid Date', 'An appointment cannot be in the past.');
+        return;
+      }
 
-    // Prepare payload by sending date as ISO string
     const payload = {
       date: combinedDateTime.toISOString(),
       appointmentType,
@@ -89,36 +85,50 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onDismiss }) => {
     };
 
     try {
-      const response = await api.post('/Clinical/appt', payload);
-      console.log('Appointment added successfully:', response.data);
-      onDismiss();
-      eventBus.emit('refreshDashboard');
-    } catch (error: any) {
-      if (error.response) {
-        const errorText = await error.response.data;
-        console.error('Failed to add appointment data:', error.response.status, errorText);
-        Alert.alert('Error', errorText || 'Failed to add appointment data.');
-      } else {
-        console.error('Error submitting appointment data:', error);
-        Alert.alert('Error', 'Error submitting appointment data.');
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        console.error('No token found');
+        return;
       }
+
+      console.log('Using token:', token);
+      console.log('Payload:', payload);
+
+      const response = await fetch('http://192.168.1.188:5276/api/Clinical/appt', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        console.log('Appointment added successfully');
+        onDismiss();
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to add appointment data:', response.status, errorText);
+      }
+    } catch (error) {
+      console.error('Error submitting appointment data:', error);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text variant="titleLarge" style={styles.title}>
+    <View style={{ backgroundColor: 'transparent' }}>
+      <Text variant="titleLarge" style={{ textAlign: 'center', marginBottom: 16 }}>
         Add Appointment
       </Text>
 
-      <View style={styles.dateTimeRow}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
         <TextInput
           mode="flat"
           label="Date"
           value={formatDate(date)}
           onFocus={openAndroidDatePicker}
           right={<TextInput.Icon icon="calendar" />}
-          style={[styles.input, { flex: 0.6, marginRight: 8 }]}
+          style={{ flex: 0.6, marginRight: 8, backgroundColor: 'transparent' }}
         />
         <TextInput
           mode="flat"
@@ -126,7 +136,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onDismiss }) => {
           value={formatTime(time)}
           onFocus={openAndroidTimePicker}
           right={<TextInput.Icon icon="clock-outline" />}
-          style={[styles.input, { flex: 0.4 }]}
+          style={{ flex: 0.4, backgroundColor: 'transparent' }}
         />
       </View>
 
@@ -140,11 +150,13 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onDismiss }) => {
         }}
         multiline
         maxLength={128}
-        style={styles.input}
+        style={{ marginBottom: 16, backgroundColor: 'transparent' }}
         error={appointmentTypeError}
       />
       {appointmentTypeError && (
-        <HelperText type="error">This field is required.</HelperText>
+        <HelperText type="error">
+          This field is required.
+        </HelperText>
       )}
 
       <TextInput
@@ -152,16 +164,18 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onDismiss }) => {
         label="Venue*"
         value={venue}
         onChangeText={(text) => {
-          setVenue(text);
-          if (text.trim() !== '') setVenueError(false);
-        }}
+            setVenue(text);
+            if (text.trim() !== '') setVenueError(false);
+          }}
         multiline
         maxLength={256}
-        style={styles.input}
+        style={{ marginBottom: 16, backgroundColor: 'transparent' }}
         error={venueError}
       />
       {venueError && (
-        <HelperText type="error">This field is required.</HelperText>
+        <HelperText type="error">
+          This field is required.
+        </HelperText>
       )}
 
       <TextInput
@@ -171,41 +185,18 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onDismiss }) => {
         onChangeText={setNotes}
         multiline
         maxLength={128}
-        style={styles.input}
+        style={{ marginBottom: 16, backgroundColor: 'transparent' }}
       />
 
-      <Button mode="contained" onPress={submitData} style={styles.button}>
+      <Button mode="contained" onPress={submitData} style={{ marginBottom: 8 }}>
         Submit
       </Button>
 
-      <Button mode="text" onPress={onDismiss} style={styles.button}>
+      <Button mode="text" onPress={onDismiss}>
         Cancel
       </Button>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    backgroundColor: 'transparent',
-  },
-  title: {
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  input: {
-    marginBottom: 16,
-    backgroundColor: 'transparent',
-  },
-  button: {
-    marginBottom: 8,
-  },
-  dateTimeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-});
 
 export default AppointmentForm;
