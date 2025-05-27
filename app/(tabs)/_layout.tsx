@@ -34,24 +34,17 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="wellness"
+        name="recap"
         options={{
-          title: 'Wellness',
+          title: 'Recap',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="heart.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="clinical"
+        name="reminders"
         options={{
-          title: 'Clinical',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="waveform.path.ecg" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.bust.fill" color={color} />,
+          title: 'Reminders',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="bell.fill" color={color} />,
         }}
       />
     </Tabs>

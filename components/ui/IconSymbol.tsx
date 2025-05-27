@@ -15,7 +15,8 @@ const MAPPING = {
   'chevron.right': 'chevron-right',
   'waveform.path.ecg': 'medical-information',
   'heart.fill' : 'volunteer-activism',
-  'person.bust.fill' : 'person'
+  'person.bust.fill' : 'person',
+  'bell.fill': 'notifications',
 } as Partial<
   Record<
     import('expo-symbols').SymbolViewProps['name'],

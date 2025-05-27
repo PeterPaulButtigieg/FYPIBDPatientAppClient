@@ -1,19 +1,24 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
-import { Text, Button, TextInput, HelperText } from 'react-native-paper';
+import { Text, Button, TextInput, HelperText, Title } from 'react-native-paper';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import api from '../services/api';
+import Slider from '@react-native-community/slider';
+import { Picker } from '@react-native-picker/picker';
 import eventBus from '@/utils/eventBus';
+import api from '../services/api';
 
-interface HydrationFormProps {
+interface SymptomFormProps {
   onDismiss: () => void;
 }
 
-const HydrationForm: React.FC<HydrationFormProps> = ({ onDismiss }) => {
+const SymptomForm: React.FC<SymptomFormProps> = ({ onDismiss }) => {
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState(new Date());
-  const [waterIntake, setWaterIntake] = useState('');
+  const [symptomType, setSymptomType] = useState('');
+  const [severity, setSeverity] = useState(5);
   const [notes, setNotes] = useState('');
+
+  const [symptomTypeError, setSymptomTypeError] = useState(false);
 
   // Format the date and time strings
   const formatDate = (d: Date) => d.toLocaleDateString();
@@ -58,35 +63,41 @@ const HydrationForm: React.FC<HydrationFormProps> = ({ onDismiss }) => {
   const submitData = async () => {
     const combinedDateTime = getCombinedDateTime();
 
+    if (!symptomType.trim()) {
+        setSymptomTypeError(true);
+        return;
+      }
+
     // Create payload—here we use toISOString() to convert to a standard format
     const payload = {
       date: combinedDateTime.toISOString(),
-      waterIntake: parseFloat(waterIntake) || 0,
+      symptomType,
+      severity,
       notes,
     };
 
     try {
       // Use Axios instance from services/api.ts
-      const response = await api.post('/Log/logHyd', payload);
+      const response = await api.post('/Log/logSymp', payload);
       if (response.status === 200 || response.status === 201) {
-        console.log('Hydration logged successfully:', response.data);
+        console.log('Symptom logged successfully:', response.data);
         onDismiss();
-        eventBus.emit('refreshRecap');
+        eventBus.emit('reloadChart');
       } else {
-        console.error('Failed to log hydration data:', response.status, response.data);
-        Alert.alert('Error', 'Failed to log hydration data.');
+        console.error('Failed to log symptom data:', response.status, response.data);
+        Alert.alert('Error', 'Failed to log symptom data.');
       }
     } catch (error: any) {
-      console.error('Error submitting hydration data:', error);
+      console.error('Error submitting symptom data:', error);
       // If error.response exists, display its data; otherwise, display generic error message.
-      Alert.alert('Error', error?.response?.data || 'Error submitting hydration data.');
+      Alert.alert('Error', error?.response?.data || 'Error submitting symptom data.');
     }
   };
 
   return (
     <View style={styles.container}>
       <Text variant="titleLarge" style={styles.title}>
-        Log Hydration
+        Log a Symptom
       </Text>
 
       <View style={styles.dateTimeRow}>
@@ -108,14 +119,40 @@ const HydrationForm: React.FC<HydrationFormProps> = ({ onDismiss }) => {
         />
       </View>
 
-      <TextInput
-        mode="flat"
-        label="Water Intake (ml)"
-        value={waterIntake}
-        onChangeText={setWaterIntake}
-        keyboardType="numeric"
-        style={styles.input}
-      />
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={symptomType}
+          onValueChange={(itemValue, _itemIndex) => {
+            setSymptomType(itemValue);
+            if (itemValue.trim() !== '') setSymptomTypeError(false);
+          }}
+          style={styles.picker}
+        >
+          <Picker.Item label="Select a symptom..." value="" />
+          <Picker.Item label="Flare Up" value="Flare Up" />
+          <Picker.Item label="Abdominal Pain" value="Abdominal Pain" />
+          <Picker.Item label="Visible Inflammation" value="Visible Inflammation" />
+          <Picker.Item label="Fatigue" value="Fatigue" />
+        </Picker>
+      </View>
+      {symptomTypeError && (
+        <HelperText type="error">
+          Please select a symptom.
+        </HelperText>
+      )}
+        
+        <Text style={styles.label}>How Severe? {severity}/10</Text>
+            <Slider
+                style={styles.slider}
+                minimumValue={1}
+                maximumValue={10}
+                step={1}
+                value={severity}
+                onSlidingComplete={setSeverity}
+                minimumTrackTintColor="#6200ee"
+                maximumTrackTintColor="#ccc"
+                thumbTintColor="#6200ee"
+            />
 
       <TextInput
         mode="flat"
@@ -139,21 +176,42 @@ const HydrationForm: React.FC<HydrationFormProps> = ({ onDismiss }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    backgroundColor: 'transparent',
-  },
-  title: {
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  input: {
-    marginBottom: 16,
-    backgroundColor: 'transparent',
-  },
-  button: {
-    marginBottom: 8,
-  },
+    container: {
+        backgroundColor: 'transparent',
+        padding: 20,
+      },
+      title: {
+        textAlign: 'center',
+        marginBottom: 16,
+      },
+      input: {
+        marginBottom: 16,
+        backgroundColor: 'transparent',
+      },
+      pickerContainer: {
+        borderBottomWidth: 1,
+        borderColor: 'white',
+        marginBottom: 16,
+      },
+      picker: {
+        height: 50,
+        width: '100%',
+        color: 'white',
+      },
+      label: {
+        textAlign: 'center',
+        marginBottom: 1,
+        marginTop: 20,
+        fontSize: 16,
+      },
+      slider: {
+        width: '100%',
+        height: 40,
+        marginBottom: 1,
+      },
+      button: {
+        marginBottom: 8,
+      },
   dateTimeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -161,4 +219,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HydrationForm;
+export default SymptomForm;

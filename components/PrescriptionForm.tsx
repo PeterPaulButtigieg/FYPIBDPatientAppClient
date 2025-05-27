@@ -1,8 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState } from 'react';
-import { View, Platform, Alert } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
 import { Text, Button, TextInput, HelperText } from 'react-native-paper';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
+import api from '../services/api';
+import eventBus from '@/utils/eventBus';
 
 interface PrescriptionFormProps {
   onDismiss: () => void;
@@ -18,34 +20,38 @@ const PrescriptionForm: React.FC<PrescriptionFormProps> = ({ onDismiss }) => {
   const [intervalError, setIntervalError] = useState(false);
   const [dateError, setDateError] = useState(false);
 
-  // Format the date and time strings
+  // Format date as a localized string
   const formatDate = (d: Date) => d.toLocaleDateString();
-  const formatTime = (t: Date) =>
-    t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 
-  // Open native Android date picker
+  // Open the native Android date picker for start date
   const openAndroidStartDatePicker = () => {
     DateTimePickerAndroid.open({
       value: startDate,
       mode: 'date',
       onChange: (_event, selectedDate) => {
-        if (selectedDate) setStartDate(selectedDate);
+        if (selectedDate) {
+          setStartDate(selectedDate);
+        }
       },
     });
   };
 
+  // Open the native Android date picker for end date
   const openAndroidEndDatePicker = () => {
     DateTimePickerAndroid.open({
       value: endDate,
       mode: 'date',
       onChange: (_event, selectedDate) => {
-        if (selectedDate) setEndDate(selectedDate);
+        if (selectedDate) {
+          setEndDate(selectedDate);
+        }
       },
     });
   };
 
+  // Combine start date and end date are already separate; we'll send ISO strings.
   const submitData = async () => {
-    // Validate required field for appointmentType without using an alert
+    // Validate required fields.
     if (!medication.trim()) {
       setMedicationError(true);
       return;
@@ -57,53 +63,45 @@ const PrescriptionForm: React.FC<PrescriptionFormProps> = ({ onDismiss }) => {
     }
 
     if (endDate < startDate) {
-        setDateError(true);
-        return;
+      setDateError(true);
+      return;
     }
 
+    // Construct payload. Convert dates to ISO strings.
     const payload = {
       medication,
-      interval: parseInt(interval, 10) || 1 || 1,
-      startDate,
-      endDate,
-      notes,
+      interval: parseInt(interval, 10),
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      notes, // no frequency field any longer
     };
 
     try {
-      const token = await AsyncStorage.getItem('token');
-      if (!token) {
-        console.error('No token found');
-        return;
-      }
+      // Use Axios instance that has the base URL set and token interceptor (if configured)
+      const response = await api.post('/Clinical/ps', payload);
 
-      console.log('Using token:', token);
-      console.log('Payload:', payload);
-
-      const response = await fetch('http://192.168.1.188:5276/api/Clinical/ps', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (response.ok) {
-        console.log('Prescription added successfully');
+      // Axios sets response.status to a number – you can check for 200/201
+      if (response.status === 200 || response.status === 201) {
+        console.log('Prescription added successfully:', response.data);
         onDismiss();
+        eventBus.emit('refreshDashboard');
+
       } else {
-        const errorText = await response.text();
-        console.error('Failed to add prescription data:', response.status, errorText);
+        console.error('Failed to add prescription data:', response.status, response.data);
+        Alert.alert('Error', 'Failed to add prescription data.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting prescription data:', error);
+      // If error.response exists, display its data; otherwise, display a generic error message.
+      const errorText = error?.response?.data || 'Error submitting prescription data.';
+      Alert.alert('Error', errorText);
     }
   };
 
   return (
-    <View style={{ backgroundColor: 'transparent' }}>
-      <Text variant="titleLarge" style={{ textAlign: 'center', marginBottom: 16 }}>
-        Add Prescription
+    <View style={styles.container}>
+      <Text variant="titleLarge" style={styles.title}>
+        Add Prescription Reminder
       </Text>
 
       <TextInput
@@ -116,87 +114,109 @@ const PrescriptionForm: React.FC<PrescriptionFormProps> = ({ onDismiss }) => {
         }}
         multiline
         maxLength={128}
-        style={{ marginBottom: 16, backgroundColor: 'transparent' }}
+        style={styles.input}
         error={medicationError}
       />
       {medicationError && (
-        <HelperText type="error">
-          This field is required.
-        </HelperText>
+        <HelperText type="error">This field is required.</HelperText>
       )}
 
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
+      <View style={styles.dateRow}>
         <TextInput
           mode="flat"
           label="Start Date"
           value={formatDate(startDate)}
           onFocus={openAndroidStartDatePicker}
           right={<TextInput.Icon icon="calendar" />}
-          style={{ flex: 0.5, marginRight: 8, backgroundColor: 'transparent' }}
+          style={[styles.input, { flex: 0.5, marginRight: 8 }]}
         />
         <TextInput
           mode="flat"
           label="End Date"
-          value={formatTime(endDate)}
+          value={formatDate(endDate)}
           onFocus={openAndroidEndDatePicker}
           right={<TextInput.Icon icon="calendar" />}
-          style={{ flex: 0.5, backgroundColor: 'transparent' }}
+          style={[styles.input, { flex: 0.5 }]}
         />
       </View>
       {dateError && (
-        <HelperText type="error">
-          Start date cannot be after end date.
-        </HelperText>
+        <HelperText type="error">Start date cannot be after end date.</HelperText>
       )}
 
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
-        <Text style={{ textAlign: 'center',}}>
-          Every...
-        </Text>
+      <View style={styles.intervalRow}>
+        <Text style={styles.intervalLabel}>Every</Text>
         <TextInput
           mode="flat"
-          label="Interval*"
+          label=""
           value={interval}
           onChangeText={(text) => {
-              setInterval(text);
-              if (text.trim() !== '') setIntervalError(false);
-            }}
-          multiline
-          keyboardType='numeric'
-          maxLength={256}
-          style={{ marginBottom: 16, backgroundColor: 'transparent' }}
+            setInterval(text);
+            if (text.trim() !== '') setIntervalError(false);
+          }}
+          keyboardType="numeric"
+          style={[styles.input, { flex: 0.3 }]}
           error={intervalError}
         />
-        <Text style={{ textAlign: 'center',}}>
-         ...Day/s
-        </Text>
+        <Text style={styles.intervalLabel}>Day/s</Text>
       </View>
       {intervalError && (
-          <HelperText type="error">
-            This field is required.
-          </HelperText>
-        )}
+        <HelperText type="error">This field is required.</HelperText>
+      )}
 
       <TextInput
         mode="flat"
         label="Notes"
-        placeholder='Eg. Take 2 after lunch...'
+        placeholder="Additional notes (optional)"
         value={notes}
         onChangeText={setNotes}
         multiline
         maxLength={128}
-        style={{ marginBottom: 16, backgroundColor: 'transparent' }}
+        style={styles.input}
       />
 
-      <Button mode="contained" onPress={submitData} style={{ marginBottom: 8 }}>
+      <Button mode="contained" onPress={submitData} style={styles.button}>
         Submit
       </Button>
 
-      <Button mode="text" onPress={onDismiss}>
+      <Button mode="text" onPress={onDismiss} style={styles.button}>
         Cancel
       </Button>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: 'transparent',
+    padding: 20,
+  },
+  title: {
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  input: {
+    marginBottom: 16,
+    backgroundColor: 'transparent',
+  },
+  button: {
+    marginBottom: 8,
+  },
+  dateRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  intervalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  intervalLabel: {
+    fontSize: 16,
+    textAlign: 'center',
+    paddingHorizontal: 8,
+  },
+});
 
 export default PrescriptionForm;
