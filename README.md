@@ -1,50 +1,39 @@
-# Welcome to your Expo app 👋
+# IBD Patient App (Expo Mobile Client)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native client built with **Expo SDK 52** for tracking IBD symptoms, meals, prescriptions and appointments. Use this guide to get the app running on your machine and device.
 
-## Get started
+---
 
-1. Install dependencies
+## Prerequisites
 
+1. **Node.js** v14 or later  
+2. **npm** (comes with Node) or **Yarn** 
+3. **Any IDE** 
+3. **Expo CLI**  
    ```bash
-   npm install
+   npm install --global expo-cli
    ```
+---
 
-2. Start the app
+### ExpoGo (SDK 52)
 
-   ```bash
-    npx expo start
-   ```
+1. On your android device, navigate to https://expo.dev/go and select version <strong>SDK 52</strong> and install.
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### Running the App
+1. Open the root directory of the client app and navigate to **api.ts** inside the **services** folder. Change the base url of the api on line 4 to your network ip as follows:
 
 ```bash
-npm run reset-project
+'http://<YOURIP:5276/api'
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. On the same device as the server, open a command prompt and navigate to the main directory of the client app and run:
+```bash
+npx expo start
+```
+Now back on your android device, ensure that you are connected to the same network as where the api server and expo instance are running. Launch ExpoGo and scan the QR code that just showed up in the terminal of your host.
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+3. Demo the app using these credentials when prompted:
+- **username:** user@demo.com
+- **password:** 123456Pass*
