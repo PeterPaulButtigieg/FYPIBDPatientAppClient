@@ -22,6 +22,7 @@ import { useRouter } from 'expo-router';
 import api from '@/services/api';
 import FloatingActionButton from '@/components/FloatingActionButton';
 import eventBus from '@/utils/eventBus';
+import LogoutButton from '@/components/LogoutButton';
 import { MaterialIcons } from '@expo/vector-icons';
 
 interface Prescription {
@@ -120,8 +121,6 @@ export default function HomeScreen() {
     );
   }
 
-  const userName = 'DemoUser';
-
   return (
     <View style={styles.root}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
@@ -130,9 +129,10 @@ export default function HomeScreen() {
           <Card.Content>
             <View style={styles.CardTitleRow}>
               <IconButton icon="hand-wave" size={24} style={styles.Icon} />
-              <Title style={styles.CardTitle}>Greetiings, {userName}</Title>
+              <Title style={styles.CardTitle}>Greetings,</Title>
             </View>
             <Paragraph style={styles.CardText}>You’ve got this. Keeping a daily log helps your doctor spot patterns and stay in control of your health. Goodluck on your IBD journey!</Paragraph>
+            <LogoutButton />
           </Card.Content>
         </Card>
 
@@ -142,6 +142,7 @@ export default function HomeScreen() {
           <View style={styles.CardTitleRow}>
             <Title style={styles.CardTitle}>Today's Prescriptions</Title>
           </View>
+          <Divider style={styles.Divider} />
             {prescriptions.length > 0 ? (
               prescriptions.map((p) => (
                 <Card key={p.id} style={styles.CardItem}>
@@ -172,7 +173,7 @@ export default function HomeScreen() {
           <View style={styles.CardTitleRow}>
             <Title style={styles.CardTitle}>Next Appointment</Title>
           </View>
-
+          <Divider style={styles.Divider} />
           {nextAppt ? (
             <>
               {/* big date */}
@@ -185,7 +186,7 @@ export default function HomeScreen() {
                 </Paragraph>
               </View>
 
-              <Divider style={styles.divider} />
+              <Divider style={styles.Divider} />
 
               {/* appointment details */}
               <Card style={styles.CardItem}>
@@ -201,7 +202,7 @@ export default function HomeScreen() {
                 </Card>
             </>
           ) : (
-            <Paragraph>No upcoming appointments. Add one in Clinical.</Paragraph>
+            <Paragraph>No upcoming appointments.</Paragraph>
           )}
           <View style={styles.InfoRow}>
               <IconButton icon="information" size={16} style={styles.Icon} />
@@ -323,11 +324,11 @@ const styles = StyleSheet.create({
     lineHeight: 32,            
   },
 
-  divider: {
-    marginVertical: 12,
-    borderWidth: 1,
+  Divider: {
+    marginBottom: 16,
+    borderWidth: 0.75,
     borderColor: 'gray',
-  },
+  }
   // --- APPOINTMENT REMINDER END --- 
   
 });

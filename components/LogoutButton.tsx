@@ -19,7 +19,6 @@ export default function LogoutButton() {
       }
     } catch (error) {
       console.error('Logout API call error:', error);
-      Alert.alert('Logout Error', 'There was a problem logging out on the server.');
     } finally {
       // Regardless of the API call result, clear tokens from AsyncStorage
       await AsyncStorage.removeItem('token');

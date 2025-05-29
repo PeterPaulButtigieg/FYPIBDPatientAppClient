@@ -93,6 +93,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onDismiss }) => {
       console.log('Appointment added successfully:', response.data);
       onDismiss();
       eventBus.emit('refreshDashboard');
+      eventBus.emit('refreshReminders');
     } catch (error: any) {
       if (error.response) {
         const errorText = await error.response.data;

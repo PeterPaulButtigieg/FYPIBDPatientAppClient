@@ -85,6 +85,7 @@ const PrescriptionForm: React.FC<PrescriptionFormProps> = ({ onDismiss }) => {
         console.log('Prescription added successfully:', response.data);
         onDismiss();
         eventBus.emit('refreshDashboard');
+        eventBus.emit('refreshReminders');
 
       } else {
         console.error('Failed to add prescription data:', response.status, response.data);

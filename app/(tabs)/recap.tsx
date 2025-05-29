@@ -1,22 +1,7 @@
-// RecapScreen.tsx
+// Recap.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  Dimensions,
-  ActivityIndicator,
-  Alert,
-  Text,
-} from 'react-native';
-import {
-  Card,
-  Title,
-  Paragraph,
-  IconButton,
-  useTheme,
-  Divider
-} from 'react-native-paper';
+import { View, ScrollView, StyleSheet, Dimensions, ActivityIndicator, Alert, Text } from 'react-native';
+import { Card, Title, Paragraph, IconButton, useTheme, Divider } from 'react-native-paper';
 import FloatingActionButton from '@/components/FloatingActionButton';
 import ChartScreen from '@/components/ChartScreen';
 import { PieChart } from 'react-native-gifted-charts';
@@ -26,21 +11,18 @@ import eventBus from '@/utils/eventBus';
 interface Meal {
   id: number;
   patientId: string;
-  date: string;      // full ISO datetime string
+  date: string; 
   foodItem: string;
   notes: string;
 }
 
 interface HydrationRecap {
-  todayIntake: number;      // in liters
-  pastSixDaysIntake: number; // in liters
+  todayIntake: number;     
+  pastSixDaysIntake: number;
 }
-
-const { width: screenWidth } = Dimensions.get('window');
 
 export default function RecapScreen() {
   const { colors } = useTheme();
-  const chartSize = screenWidth * 0.4;
 
   // ─── Meals state ─────────────────────────────────────────────────────────────
   const [meals, setMeals] = useState<Meal[]>([]);
@@ -149,7 +131,7 @@ export default function RecapScreen() {
         {/* Hydration Donut Chart */}
         <Card style={styles.Card}>
           <Card.Content>
-              <Title style={styles.CardTitle}>Hydration</Title>
+              <Title style={styles.CardTitle}>Last Seven days of Hydration</Title>
               <Divider style={styles.Divider}/>
               {hydrLoading ? (
                 <ActivityIndicator color={colors.primary} />
@@ -158,7 +140,7 @@ export default function RecapScreen() {
               ) : (
                 <View style={styles.hydrationContainer}>
                   <View>
-                    <Paragraph style={styles.dateNumber}>
+                    <Paragraph style={styles.AttentionText}>
                       {((hydrSlices[0].value+hydrSlices[1].value)/1000).toFixed(1)} L
                     </Paragraph>
                         <Paragraph style={styles.CardItemName}>
@@ -167,7 +149,7 @@ export default function RecapScreen() {
                         </Paragraph>
                         <Paragraph style={styles.CardItemName}>
                         <IconButton icon="circle" size={16} iconColor='#4f398b'/>
-                          Weekly Avg. {((hydrSlices[1].value/6)/1000).toFixed(1)} L
+                          Daily Avg. {((hydrSlices[1].value/6)/1000).toFixed(1)} L
                         </Paragraph>
                   </View>
                   <View style={styles.hydChartContainer}>
@@ -186,13 +168,19 @@ export default function RecapScreen() {
                   </View>
                 </View>
               )}
+              <View style={styles.InfoRow}>
+                <IconButton icon="information" size={16} style={styles.Icon} />
+                <Paragraph style={styles.InfoText}>
+                  Percentage follows the 2 L/day hydration guideline, always consult your doctor's reccomendations.
+                </Paragraph>
+            </View>
           </Card.Content>
         </Card>
 
         {/* Meals in the Last 7 Days */}
         <Card style={styles.Card}>
           <Card.Content>
-            <Title style={styles.CardTitle}>Meals in the Last 7 Days</Title>
+            <Title style={styles.CardTitle}>Last Seven Days in Meals</Title>
             <Divider style={styles.Divider}/>
             {loadingMeals ? (
               <ActivityIndicator color={colors.primary} />
@@ -221,7 +209,7 @@ export default function RecapScreen() {
                         </Paragraph>
                         {m.notes ? (
                           <Paragraph style={styles.CardItemDesc}>
-                            {m.notes}
+                            Notes: {m.notes}
                           </Paragraph>
                         ) : null}
                       </View>
@@ -239,6 +227,12 @@ export default function RecapScreen() {
             ) : (
               <Paragraph>No meals logged.</Paragraph>
             )}
+            <View style={styles.InfoRow}>
+              <IconButton icon="information" size={16} style={styles.Icon} />
+              <Paragraph style={styles.InfoText}>
+                Earlier meals have been archived.
+              </Paragraph>
+            </View>
           </Card.Content>
         </Card>
 
@@ -288,7 +282,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  dateNumber: {
+  AttentionText: {
     fontSize: 48,
     fontWeight: '700',
     lineHeight: 50,

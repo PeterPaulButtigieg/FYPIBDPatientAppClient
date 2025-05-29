@@ -89,10 +89,10 @@ export default function ChartScreen() {
   // Legend configuration
   const legendItems = [
     { label: 'Symptoms',       color: 'tomato'   },
-    { label: 'Bowel Movement', color: 'gold'     },
+    { label: 'Bowel Movements', color: 'gold'     },
     { label: 'Sleep (h)',      color: 'plum'     },
     { label: 'Exercise (h)',   color: 'skyblue'  },
-    { label: 'Stress Level',   color: 'palegreen'},
+    { label: 'Mood',   color: 'palegreen'},
   ];
 
   return (
@@ -110,7 +110,7 @@ export default function ChartScreen() {
           data5={mData}
           hideDataPoints
           thickness={2}
-          spacing={40}
+          spacing={35}
           hideRules
           color1='tomato'
           color2='gold'
@@ -157,13 +157,13 @@ const styles = StyleSheet.create({
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    margin: 4,
+    //margin: 4,
   },
   legendColorBox: {
     width: 12,
     height: 12,
     marginRight: 4,
-    borderRadius: 2,
+    borderRadius: 10,
   },
   legendLabel: {
     color: '#fff',
